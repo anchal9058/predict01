@@ -94,6 +94,7 @@ def molecule(input_pdb):
     allow-top-navigation-by-user-activation allow-downloads" allowfullscreen="" 
     allowpaymentrequest="" frameborder="0" srcdoc='{x}'></iframe>"""
 
+
 import tempfile
 
 
@@ -103,62 +104,49 @@ def update(sequence=DEFAULT_SEQ):
     }
 
     response = requests.post('https://api.esmatlas.com/foldSequence/v1/pdb/', headers=headers, data=sequence)
-    name = sequence[:3] + sequence[-3:] 
+    name = sequence[:3] + sequence[-3:]
     pdb_string = response.content.decode('utf-8')
-    
-    tmp = tempfile.NamedTemporaryFile()
-    with open(tmp.name, "w") as f:
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
         f.write(pdb_string)
-    print("File name", tmp.name)
-    return molecule(tmp.name)
+        tmp_name = f.name
+
+    return molecule(tmp_name)
 
 
 def suggest(option):
-   if option == "Plastic degradation protein":
-     suggestion = "MGSSHHHHHHSSGLVPRGSHMRGPNPTAASLEASAGPFTVRSFTVSRPSGYGAGTVYYPTNAGGTVGAIAIVPGYTARQSSIKWWGPRLASHGFVVITIDTNSTLDQPSSRSSQQMAALRQVASLNGTSSSPIYGKVDTARMGVMGWSMGGGGSLISAANNPSLKAAAPQAPWDSSTNFSSVTVPTLIFACENDSIAPVNSSALPIYDSMSRNAKQFLEINGGSHSCANSGNSNQALIGKKGVAWMKRFMDNDTRYSTFACENPNSTRVSDFRTANCSLEDPAANKARKEAELAAATAEQ"
-   elif option == "Antifreeze protein":
-     suggestion = "QCTGGADCTSCTGACTGCGNCPNAVTCTNSQHCVKANTCTGSTDCNTAQTCTNSKDCFEANTCTDSTNCYKATACTNSSGCPGH"
-   elif option == "AI Generated protein":
-     suggestion = "MSGMKKLYEYTVTTLDEFLEKLKEFILNTSKDKIYKLTITNPKLIKDIGKAIAKAAEIADVDPKEIEEMIKAVEENELTKLVITIEQTDDKYVIKVELENEDGLVHSFEIYFKNKEEMEKFLELLEKLISKLSGS"
-   elif option == "7-bladed propeller fold":
-     suggestion = "VKLAGNSSLCPINGWAVYSKDNSIRIGSKGDVFVIREPFISCSHLECRTFFLTQGALLNDKHSNGTVKDRSPHRTLMSCPVGEAPSPYNSRFESVAWSASACHDGTSWLTIGISGPDNGAVAVLKYNGIITDTIKSWRNNILRTQESECACVNGSCFTVMTDGPSNGQASYKIFKMEKGKVVKSVELDAPNYHYEECSCYPNAGEITCVCRDNWHGSNRPWVSFNQNLEYQIGYICSGVFGDNPRPNDGTGSCGPVSSNGAYGVKGFSFKYGNGVWIGRTKSTNSRSGFEMIWDPNGWTETDSSFSVKQDIVAITDWSGYSGSFVQHPELTGLDCIRPCFWVELIRGRPKESTIWTSGSSISFCGVNSDTVGWSWPDGAELPFTIDK"
-   else:
-     suggestion = ""
-   return suggestion
+    if option == "Plastic degradation protein":
+        suggestion = "MGSSHHHHHHSSGLVPRGSHMRGPNPTAASLEASAGPFTVRSFTVSRPSGYGAGTVYYPTNAGGTVGAIAIVPGYTARQSSIKWWGPRLASHGFVVITIDTNSTLDQPSSRSSQQMAALRQVASLNGTSSSPIYGKVDTARMGVMGWSMGGGGSLISAANNPSLKAAAPQAPWDSSTNFSSVTVPTLIFACENDSIAPVNSSALPIYDSMSRNAKQFLEINGGSHSCANSGNSNQALIGKKGVAWMKRFMDNDTRYSTFACENPNSTRVSDFRTANCSLEDPAANKARKEAELAAATAEQ"
+    elif option == "Antifreeze protein":
+        suggestion = "QCTGGADCTSCTGACTGCGNCPNAVTCTNSQHCVKANTCTGSTDCNTAQTCTNSKDCFEANTCTDSTNCYKATACTNSSGCPGH"
+    elif option == "AI Generated protein":
+        suggestion = "MSGMKKLYEYTVTTLDEFLEKLKEFILNTSKDKIYKLTITNPKLIKDIGKAIAKAAEIADVDPKEIEEMIKAVEENELTKLVITIEQTDDKYVIKVELENEDGLVHSFEIYFKNKEEMEKFLELLEKLISKLSGS"
+    elif option == "7-bladed propeller fold":
+        suggestion = "VKLAGNSSLCPINGWAVYSKDNSIRIGSKGDVFVIREPFISCSHLECRTFFLTQGALLNDKHSNGTVKDRSPHRTLMSCPVGEAPSPYNSRFESVAWSASACHDGTSWLTIGISGPDNGAVAVLKYNGIITDTIKSWRNNILRTQESECACVNGSCFTVMTDGPSNGQASYKIFKMEKGKVVKSVELDAPNYHYEECSCYPNAGEITCVCRDNWHGSNRPWVSFNQNLEYQIGYICSGVFGDNPRPNDGTGSCGPVSSNGAYGVKGFSFKYGNGVWIGRTKSTNSRSGFEMIWDPNGWTETDSSFSVKQDIVAITDWSGYSGSFVQHPELTGLDCIRPCFWVELIRGRPKESTIWTSGSSISFCGVNSDTVGWSWPDGAELPFTIDK"
+    else:
+        suggestion = ""
+    return suggestion
 
 
-demo = gr.Blocks()
+demo = gr.Interface(
+    fn=update,
+    inputs="textbox",
+    outputs="html",
+    examples=[
+        ["MGSSHHHHHHSSGLVPRGSHMRGPNPTAASLEASAGPFTVRSFTVSRPSGYGAGTVYYPTNAGGTVGAIAIVPGYTARQSSIKWWGPRLASHGFVVITIDTNSTLDQPSSRSSQQMAALRQVASLNGTSSSPIYGKVDTARMGVMGWSMGGGGSLISAANNPSLKAAAPQAPWDSSTNFSSVTVPTLIFACENDSIAPVNSSALPIYDSMSRNAKQFLEINGGSHSCANSGNSNQALIGKKGVAWMKRFMDNDTRYSTFACENPNSTRVSDFRTANCSLEDPAANKARKEAELAAATAEQ"]
+    ],
+    title="ESMFold Protein Folding Demo",
+    description="You can input a single protein sequence and get the predicted protein structure.",
+    article="""
+    <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+        <div style="display: inline-flex; align-items: center; gap: 0.8rem; font-size: 1.75rem;">
+            <h1 style="font-weight: 900; margin-bottom: 7px; margin-top: 5px;">ESMFold Protein Folding Demo</h1>
+        </div>
+        <p style="margin-bottom: 10px; font-size: 94%">
+            You can input a single protein sequence and get the predicted protein structure.
+        </p>
+    </div>
+    """,
+)
 
-
-with demo:
-    gr.HTML("""<div style="text-align: center; max-width: 700px; margin: 0 auto;">
-              <div
-              style="
-                  display: inline-flex;
-                  align-items: center;
-                  gap: 0.8rem;
-                  font-size: 1.75rem;
-              "
-              >
-              <h1 style="font-weight: 900; margin-bottom: 7px; margin-top: 5px;">
-                   ESMFold Protein Folding demo
-              </h1>
-              </div>
-              <p style="margin-bottom: 10px; font-size: 94%">
-                  You can input a single protein sequence and you get the predicted protein structure
-              </p>
-          </div>""")
-    name = gr.Dropdown(label="Choose a Sample Protein", value="Plastic degradation protein", choices=["Antifreeze protein", "Plastic degradation protein",  "AI Generated protein", "7-bladed propeller fold", "custom"])
-    with gr.Row():
-        inp = gr.Textbox(label="Protein sequence", lines=3, value=DEFAULT_SEQ, placeholder="Write your protein sequence here...")
-        btn = gr.Button("🔬 Predict Structure ").style(full_width=False)
-    mol = gr.HTML(update)    
-    #download = gr.File(label="Download file")
-    btn.click(fn=update, inputs=inp, outputs=mol)
-    
-    name.change(fn=suggest, inputs=name, outputs=inp)
-    name.change(fn=lambda :"", inputs=None, outputs=mol)
-    inp.change(fn=update, inputs=inp, outputs=mol)
-    
-    gr.Markdown("A demo of [ESM](https://esmatlas.com/about) by Meta using the API. You can also use ESM in Hugging Face `transformers` as shown [here](https://github.com/huggingface/notebooks/blob/ab81a52182acf691e6743a50bc47bd1c1622086f/examples/protein_folding.ipynb), which is supported since [v4.24](https://github.com/huggingface/transformers/releases/tag/v4.24.0).")
-demo.launch(debug=True)
+demo.launch()
